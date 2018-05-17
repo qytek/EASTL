@@ -176,7 +176,7 @@ namespace eastl
 		#include <new>
 	#endif
 
-	#if !EASTL_DLL // If building a regular library and not building EASTL as a DLL...
+	#if 0 //!EASTL_DLL // If building a regular library and not building EASTL as a DLL...
 		// It is expected that the application define the following
 		// versions of operator new for the application. Either that or the
 		// user needs to override the implementation of the allocator class.
@@ -245,7 +245,7 @@ namespace eastl
 				#define pName EASTL_ALLOCATOR_DEFAULT_NAME
 			#endif
 
-			#if EASTL_DLL
+			#if 1 // EASTL_DLL
 				return allocate(n, EASTL_SYSTEM_ALLOCATOR_MIN_ALIGNMENT, 0, flags);
 			#elif (EASTL_DEBUGPARAMS_LEVEL <= 0)
 				return ::new((char*)0, flags, 0, (char*)0,        0) char[n];
@@ -259,7 +259,7 @@ namespace eastl
 
 		inline void* allocator::allocate(size_t n, size_t alignment, size_t offset, int flags)
 		{
-			#if EASTL_DLL
+			#if 1 // EASTL_DLL
 				// We currently have no support for implementing flags when 
 				// using the C runtime library operator new function. The user 
 				// can use SetDefaultAllocator to override the default allocator.
@@ -292,7 +292,7 @@ namespace eastl
 
 		inline void allocator::deallocate(void* p, size_t)
 		{
-			#if EASTL_DLL
+			#if 1 // EASTL_DLL
 				if (p != nullptr)
 				{
 					void* pOriginalAllocation = *((void**)p - 1);
