@@ -68,6 +68,8 @@ target_include_directories(EASTL PUBLIC include)
 #-------------------------------------------------------------------------------------------
 target_link_libraries(EASTL EABase)
 
+file(GLOB EASTL_STDC_SOURCES "test/packages/EAStdC/source/*.cpp" )
+
 #-------------------------------------------------------------------------------------------
 # Installation
 #-------------------------------------------------------------------------------------------
@@ -75,3 +77,6 @@ install(TARGETS EASTL DESTINATION lib)
 install(DIRECTORY include/EASTL DESTINATION include)
 install(DIRECTORY test/packages/EABase/include/Common/EABase DESTINATION include)
 install(FILES ${EASTL_SOURCES} DESTINATION include/EASTL )
+install(DIRECTORY test/packages/EAAssert/include/EAAssert DESTINATION include)
+install(DIRECTORY test/packages/EAStdC/include/EAStdC DESTINATION include)
+install(FILES ${EASTL_STDC_SOURCES} DESTINATION include/EAStdC)
