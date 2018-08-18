@@ -20,23 +20,6 @@ struct DefaultConstructibleType
 	int mVal;
 };
 
-struct MoveOnlyType
-{
-	MoveOnlyType() = delete;
-	MoveOnlyType(int val) : mVal(val) {}
-	MoveOnlyType(const MoveOnlyType&) = delete;
-	MoveOnlyType(MoveOnlyType&& x) : mVal(x.mVal) { x.mVal = 0; }
-	MoveOnlyType& operator=(const MoveOnlyType&) = delete;
-	MoveOnlyType& operator=(MoveOnlyType&& x)
-	{
-		mVal = x.mVal;
-		x.mVal = 0;
-		return *this;
-	}
-
-	int mVal;
-};
-
 struct OperationCountingType
 {
 	OperationCountingType() : mVal() { ++mDefaultConstructorCalls; }
@@ -248,6 +231,18 @@ int TestTuple()
 		EATEST_VERIFY(lesserTuple < greaterTuple && !(greaterTuple < lesserTuple) && greaterTuple > lesserTuple &&
 					  !(lesserTuple > greaterTuple));
 
+		tuple<int, float, TestObject> valTup(2, 2.0f, TestObject(2));
+		tuple<int&, float&, TestObject&> refTup(valTup);
+		tuple<const int&, const float&, const TestObject&> constRefTup(valTup);
+
+		EATEST_VERIFY(get<0>(refTup) == get<0>(valTup));
+		EATEST_VERIFY(get<1>(refTup) == get<1>(valTup));
+		EATEST_VERIFY(refTup == valTup);
+		EATEST_VERIFY(get<0>(refTup) == get<0>(constRefTup));
+		EATEST_VERIFY(get<1>(refTup) == get<1>(constRefTup));
+		EATEST_VERIFY(constRefTup == valTup);
+		EATEST_VERIFY(constRefTup == refTup);
+
 		// swap
 		swap(lesserTuple, greaterTuple);
 		EATEST_VERIFY(get<2>(lesserTuple) == 4 && get<2>(greaterTuple) == 3);
@@ -264,6 +259,15 @@ int TestTuple()
 		EATEST_VERIFY(get<0>(aTupleWithMoveOnlyMember).mVal == 1);
 		get<0>(aTupleWithMoveOnlyMember) = MoveOnlyType(2);
 		EATEST_VERIFY(get<0>(aTupleWithMoveOnlyMember).mVal == 2);
+
+		tuple<const MoveOnlyType&> aTupleWithRefToMoveOnlyMember(aTupleWithMoveOnlyMember);
+		EATEST_VERIFY(get<0>(aTupleWithRefToMoveOnlyMember).mVal == 2);
+
+		tuple<const MoveOnlyType&> aTupleWithConstRefToGetMoveOnly(get<0>(aTupleWithMoveOnlyMember));
+		EATEST_VERIFY(get<0>(aTupleWithConstRefToGetMoveOnly).mVal == 2);
+
+		tuple<MoveOnlyType&> aTupleWithRefToGetMoveOnly(get<0>(aTupleWithMoveOnlyMember));
+		EATEST_VERIFY(get<0>(aTupleWithRefToGetMoveOnly).mVal == 2);
 	}
 
 	{
