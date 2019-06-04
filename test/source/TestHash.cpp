@@ -1261,34 +1261,20 @@ int TestHash()
 	#endif
 
 	{
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			// hashtable(this_type&& x);
-			// hashtable(this_type&& x, const allocator_type& allocator);
-			// this_type& operator=(this_type&& x);
-		#endif
+		// hashtable(this_type&& x);
+		// hashtable(this_type&& x, const allocator_type& allocator);
+		// this_type& operator=(this_type&& x);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			// template <class... Args>
-			// insert_return_type emplace(Args&&... args);
+		// template <class... Args>
+		// insert_return_type emplace(Args&&... args);
 
-			// template <class... Args>
-			// iterator emplace_hint(const_iterator position, Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				// insert_return_type emplace(value_type&& value);
-				// iterator emplace_hint(const_iterator position, value_type&& value);
-			#endif
+		// template <class... Args>
+		// iterator emplace_hint(const_iterator position, Args&&... args);
 
-			// insert_return_type emplace(const value_type& value);
-			// iterator emplace_hint(const_iterator position, const value_type& value);
-		#endif
+		// template <class P> // Requires that "value_type is constructible from forward<P>(otherValue)."
+		// insert_return_type insert(P&& otherValue);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			// template <class P> // Requires that "value_type is constructible from forward<P>(otherValue)."
-			// insert_return_type insert(P&& otherValue);
-
-			// iterator insert(const_iterator hint, value_type&& value);
-		#endif
+		// iterator insert(const_iterator hint, value_type&& value);
 
 		// Regression of user reported compiler error in hashtable sfinae mechanism 
 		{
@@ -1337,24 +1323,24 @@ int TestHash()
 	// 
 	// error: 'eastl::pair<T1, T2>::pair(T1&&) [with T1 = const int&; T2 = const int&]' cannot be overloaded
 	// error: with 'eastl::pair<T1, T2>::pair(const T1&) [with T1 = const int&; T2 = const int&]'
-	#if EASTL_MOVE_SEMANTICS_ENABLED && !defined(EA_COMPILER_GNUC)
+	#if !defined(EA_COMPILER_GNUC)
 	{
 		EA_DISABLE_VC_WARNING(4626)
 		struct Key
 		{
 			Key() {}
-			Key(Key&& o) {}
-			Key(const Key&& o) {}
-			bool operator==(const Key& other) const { return true; }
+			Key(Key&&) {}
+			Key(const Key&&) {}
+			bool operator==(const Key&) const { return true; }
 
 		private:
-			Key(const Key& o) {}
+			Key(const Key&) {}
 		};
 		EA_RESTORE_VC_WARNING()
 
 		struct Hash
 		{
-			std::size_t operator()(const Key& k) const { return 0; }
+			std::size_t operator()(const Key&) const { return 0; }
 		};
 
 		Key key1, key2;
@@ -1379,7 +1365,7 @@ int TestHash()
 			AllocatorType::resetCount();
 
 			myMap.insert(eastl::make_pair(eastl::move(key), eastl::move(value)));
-			EATEST_VERIFY(AllocatorType::getAllocationCount() == 1);
+			EATEST_VERIFY(AllocatorType::getTotalAllocationCount() == 1);
 		}
 		{
 			StringStringHashMap myMap(5); // construct map with 5 buckets, so we don't rehash on insert
@@ -1388,7 +1374,7 @@ int TestHash()
 			AllocatorType::resetCount();
 
 			myMap.emplace(eastl::move(key), eastl::move(value));
-			EATEST_VERIFY(AllocatorType::getAllocationCount() == 1);
+			EATEST_VERIFY(AllocatorType::getTotalAllocationCount() == 1);
 		}
 		{
 			StringStringMap myMap;
@@ -1397,7 +1383,7 @@ int TestHash()
 			AllocatorType::resetCount();
 
 			myMap.insert(eastl::make_pair(eastl::move(key), eastl::move(value)));
-			EATEST_VERIFY(AllocatorType::getAllocationCount() == 1);
+			EATEST_VERIFY(AllocatorType::getTotalAllocationCount() == 1);
 		}
 		{
 			StringStringMap myMap;
@@ -1406,7 +1392,32 @@ int TestHash()
 			AllocatorType::resetCount();
 
 			myMap.emplace(eastl::move(key), eastl::move(value));
-			EATEST_VERIFY(AllocatorType::getAllocationCount() == 1);
+			EATEST_VERIFY(AllocatorType::getTotalAllocationCount() == 1);
+		}
+	}
+
+	
+	{
+
+		struct name_equals
+		{
+			bool operator()(const eastl::pair<int, const char*>& a, const eastl::pair<int, const char*>& b) const
+			{
+				if (a.first != b.first)
+					return false;
+
+				return strcmp(a.second, b.second) == 0;
+			}
+		};
+
+		{
+			int n = 42;
+			const char* pCStrName = "electronic arts";
+			eastl::hash_map<eastl::pair<int, const char*>, bool, eastl::hash<eastl::pair<int, const char*>>, name_equals, eastl::allocator> m_TempNames;
+			m_TempNames[eastl::make_pair(n, pCStrName)] = true;
+
+			auto isFound = (m_TempNames.find(eastl::make_pair(n, pCStrName)) != m_TempNames.end());
+			VERIFY(isFound);
 		}
 	}
 

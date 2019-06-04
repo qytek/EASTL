@@ -1,7 +1,7 @@
 ## Contributing
 
 Before you can contribute, EA must have a Contributor License Agreement (CLA) on file that has been signed by each contributor.
-You can sign here: [Go to CLA](https://goo.gl/KPylZ3)
+You can sign here: [Go to CLA](https://electronicarts.na1.echosign.com/public/esignWidget?wid=CBFCIBAA3AAABLblqZhByHRvZqmltGtliuExmuV-WNzlaJGPhbSRg2ufuPsM3P0QmILZjLpkGslg24-UJtek*)
 
 ### Pull Request Policy
 
@@ -37,7 +37,7 @@ Here is an example batch file.
 set build_folder=out
 mkdir %build_folder%
 pushd %build_folder%
-call cmake .. -DEASTL_BUILD_TESTS:BOOL=ON
+call cmake .. -DEASTL_BUILD_TESTS:BOOL=ON -DEASTL_BUILD_BENCHMARK:BOOL=OFF
 call cmake --build . --config Release
 call cmake --build . --config Debug
 call cmake --build . --config RelWithDebInfo
@@ -56,7 +56,7 @@ Here is an example bash file
 build_folder=out
 mkdir $build_folder
 pushd $build_folder
-cmake .. -DEASTL_BUILD_TESTS:BOOL=ON
+cmake .. -DEASTL_BUILD_TESTS:BOOL=ON -DEASTL_BUILD_BENCHMARK:BOOL=OFF
 cmake --build . --config Release
 cmake --build . --config Debug
 cmake --build . --config RelWithDebInfo
@@ -70,3 +70,4 @@ popd
 popd
 ```
 
+The value of EASTL_BUILD_BENCHMARK can be toggled to `ON` in order to build projects that include the benchmark program.

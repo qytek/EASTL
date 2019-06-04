@@ -10,17 +10,12 @@
 #include "EASTLBenchmark.h"
 #include "EASTLTest.h"
 
-#ifdef _MSC_VER
-	#pragma warning(push, 0)
-	#pragma warning(disable: 4350)
-#endif
+EA_DISABLE_ALL_VC_WARNINGS()
 #include <stdlib.h>
 #include <algorithm>
 #include <functional>
 #include <vector>
-#ifdef _MSC_VER
-	#pragma warning(pop)
-#endif
+EA_RESTORE_ALL_VC_WARNINGS()
 
 
 using namespace EA;
@@ -638,7 +633,7 @@ int CompareSortPerformance()
 
 				for (SortFunctionType sortFunction : sortFunctions)
 				{
-					sOutput.append_sprintf("%25s, %14s, Size: %8u, Time: %14I64u ticks %0.2f ticks/elem\n",
+					sOutput.append_sprintf("%25s, %14s, Size: %8u, Time: %14" PRIu64 " ticks %0.2f ticks/elem\n",
 					                       GetSortFunctionName(sortFunction), GetRandomizationTypeName(i),
 					                       (unsigned)size, sResults[i][sizeType][sortFunction].mTime,
 					                       float(sResults[i][sizeType][sortFunction].mTime)/float(size));
@@ -813,7 +808,7 @@ int CompareSortPerformance()
 
 				for (SortFunctionType sortFunction : sortFunctions)
 				{
-					sOutput.append_sprintf("%25s, %14s, Size: %6u, Time: %11I64u ticks, Compares: %11I64u\n",
+					sOutput.append_sprintf("%25s, %14s, Size: %6u, Time: %11" PRIu64 " ticks, Compares: %11" PRIu64 "\n",
 					                       GetSortFunctionName(sortFunction), GetRandomizationTypeName(i),
 					                       (unsigned)size, sResults[i][sizeType][sortFunction].mTime,
 					                       sResults[i][sizeType][sortFunction].mCompareCount);
@@ -991,7 +986,7 @@ int CompareSortPerformance()
 
 				for (SortFunctionType sortFunction : sortFunctions)
 				{
-					sOutput.append_sprintf("%25s, %14s, Size: %6u, Time: %11I64u ticks, Assignments: %11I64u\n",
+					sOutput.append_sprintf("%25s, %14s, Size: %6u, Time: %11" PRIu64 " ticks, Assignments: %11" PRIu64 "\n",
 					                       GetSortFunctionName(sortFunction), GetRandomizationTypeName(i),
 					                       (unsigned)size, sResults[i][sizeType][sortFunction].mTime,
 					                       sResults[i][sizeType][sortFunction].mAssignCount);
@@ -1168,6 +1163,8 @@ static int CompareSmallInputSortPerformanceHelper(eastl::vector<eastl_size_t> &a
 							stopwatch.Stop();
 							break;
 
+						case sf_qsort:
+						case sf_radix_sort:
 						case sf_count:
 						default:
 							EATEST_VERIFY_F(false, "Missing case statement for sort function %s.", GetSortFunctionName(sortFunction));
@@ -1216,7 +1213,7 @@ static int CompareSmallInputSortPerformance()
 
 	EA::UnitTest::ReportVerbosity(2, "Small Sub-array Sort comparison: Regular speed test\n");
 	nErrorCount += CompareSmallInputSortPerformanceHelper<uint32_t, eastl::less<uint32_t>>(
-	    arraySizes, sortFunctions, PreExecuteCallback([]() {}), PostExecuteCallback([](BenchmarkResult& result) {}),
+	    arraySizes, sortFunctions, PreExecuteCallback([]() {}), PostExecuteCallback([](BenchmarkResult&) {}),
 	    OutputResultCallback([](eastl::string& output, const char* sortFunction, const char* randomizationType,
 	                            size_t size, size_t numSubArrays, const BenchmarkResult& result) {
 		    output.append_sprintf("%25s, %14s, Size: %8u, Time: %0.1f ticks %0.2f ticks/elem\n", sortFunction,

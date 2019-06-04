@@ -126,6 +126,34 @@ static int TestMinMax()
 	EA::UnitTest::Rand rng(EA::UnitTest::GetRandSeed());
 
 	{
+		// NOTE(rparolin): This compiles but it should not.  We provide explicit eastl::max overloads for float, double,
+		// and long double which enable this behaviour.  It is not standards compliant and it will be removed in a
+		// future release.
+		{
+			struct Foo
+			{
+				operator float() const { return 0; }
+			};
+
+			Foo f1;
+			float f2{};
+			eastl::max(f1, f2);
+		}
+
+		// NOTE(rparolin): This will not compile because we lack explicit eastl::max overloads for 'int'.
+		// {
+		//	 struct Foo
+		//	 {
+		//		 operator int() const { return 0; }
+		//	 };
+
+		//	 Foo f1;
+		//	 int f2{};
+		//	 eastl::max(f1, f2);
+		// }
+	}
+
+	{
 		// const T& min(const T& a, const T& b);
 		// const T& min(const T& a, const T& b, Compare compare)
 		// const T& max(const T& a, const T& b);
@@ -888,11 +916,7 @@ int TestAlgorithm()
   
 			eastl::move(src.begin(), src.end(), dest.begin());
 			EATEST_VERIFY((dest[0] == "0") && (dest[3] == "3"));
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				EATEST_VERIFY(src[0].empty() && src[3].empty());
-			#else
-				// Else move_backward wasn't able to use C++11 move and instead did a copy.
-			#endif
+			EATEST_VERIFY(src[0].empty() && src[3].empty());
 		}
 
 		{
@@ -904,11 +928,7 @@ int TestAlgorithm()
   
 			eastl::move_backward(src.begin(), src.end(), dest.end());
 			EATEST_VERIFY((dest[0] == "0") && (dest[3] == "3"));
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				EATEST_VERIFY(src[0].empty() && src[3].empty());
-			#else
-				// Else move_backward wasn't able to use C++11 move and instead did a copy.
-			#endif
+			EATEST_VERIFY(src[0].empty() && src[3].empty());
 		}
 	}
 

@@ -23,8 +23,8 @@ int TEST_STRING_NAME()
 		Failocator() = default;
 		Failocator(const char*) {}
 
-		void* allocate(size_t n) { EA_FAIL(); return nullptr; }
-		void deallocate(void* p, size_t) { EA_FAIL(); }
+		void* allocate(size_t) { EA_FAIL(); return nullptr; }
+		void deallocate(void*, size_t) { EA_FAIL(); }
 	};
 
 	#if defined(EA_PLATFORM_ANDROID)
@@ -61,10 +61,10 @@ int TEST_STRING_NAME()
 			VERIFY(str.IsSSO());
 		}
 
-		if(EA_PLATFORM_WORD_SIZE == 8)
+		EA_CONSTEXPR_IF(EA_PLATFORM_WORD_SIZE == 8)
 		{
 			// test SSO size on 64 bit platforms
-			if(sizeof(typename StringType::value_type) == 1)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 1)
 			{
 				// we can fit 23 characters on 64bit system with 1 byte chars
 				const auto* pLiteral = LITERAL("aaaaaaaaaaaaaaaaaaaaaaa");
@@ -76,7 +76,7 @@ int TEST_STRING_NAME()
 				VERIFY(str.IsSSO());
 			}
 
-			if(sizeof(typename StringType::value_type) == 2)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 2)
 			{
 				// we can fit 11 characters on 64 bit system with 2 byte chars
 				const auto* pLiteral = LITERAL("aaaaaaaaaaa");
@@ -88,7 +88,7 @@ int TEST_STRING_NAME()
 				VERIFY(str.IsSSO());
 			}
 
-			if(sizeof(typename StringType::value_type) == 4)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 4)
 			{
 				// we can fit 5 characters on 64 bit system with 4 byte chars
 				const auto* pLiteral = LITERAL("aaaaa");
@@ -101,10 +101,10 @@ int TEST_STRING_NAME()
 			}
 		}
 
-		if(EA_PLATFORM_WORD_SIZE == 4)
+		EA_CONSTEXPR_IF(EA_PLATFORM_WORD_SIZE == 4)
 		{
 			// test SSO size on 32 bit platforms
-			if(sizeof(typename StringType::value_type) == 1)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 1)
 			{
 				// we can fit 11 characters on 32bit system with 1 byte chars
 				const auto* pLiteral = LITERAL("aaaaaaaaaaa");
@@ -116,7 +116,7 @@ int TEST_STRING_NAME()
 				VERIFY(str.IsSSO());
 			}
 
-			if(sizeof(typename StringType::value_type) == 2)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 2)
 			{
 				// we can fit 5 characters on 32 bit system with 2 byte chars
 				const auto* pLiteral = LITERAL("aaaaa");
@@ -128,7 +128,7 @@ int TEST_STRING_NAME()
 				VERIFY(str.IsSSO());
 			}
 
-			if(sizeof(typename StringType::value_type) == 4)
+			EA_CONSTEXPR_IF(sizeof(typename StringType::value_type) == 4)
 			{
 				// we can fit 2 characters on 32 bit system with 4 byte chars
 				const auto* pLiteral = LITERAL("aa");
@@ -282,47 +282,43 @@ int TEST_STRING_NAME()
 
 	// basic_string(this_type&& x);
 	// basic_string(this_type&& x, const allocator_type& allocator);
-	{
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		{  // test heap string
-			StringType str1(LITERAL("abcdefghijklmnopqrstuvwxyz"));
-			StringType str2(eastl::move(str1));
+	{  // test heap string
+		StringType str1(LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		StringType str2(eastl::move(str1));
 
-			VERIFY(str1 != LITERAL("abcdefghijklmnopqrstuvwxyz"));
-			VERIFY(str2 == LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		VERIFY(str1 != LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		VERIFY(str2 == LITERAL("abcdefghijklmnopqrstuvwxyz"));
 
-			VERIFY(str1.empty());
-			VERIFY(!str2.empty());
+		VERIFY(str1.empty());
+		VERIFY(!str2.empty());
 
-			VERIFY(str1.length() == 0);
-			VERIFY(str2.length() == 26);
+		VERIFY(str1.length() == 0);
+		VERIFY(str2.length() == 26);
 
-			VERIFY(str1.size() == 0);
-			VERIFY(str2.size() == 26);
+		VERIFY(str1.size() == 0);
+		VERIFY(str2.size() == 26);
 
-			VERIFY(str1.validate());
-			VERIFY(str2.validate());
-		}
-		{  // test sso string
-			StringType str1(LITERAL("a"));
-			StringType str2(eastl::move(str1));
+		VERIFY(str1.validate());
+		VERIFY(str2.validate());
+	}
+	{  // test sso string
+		StringType str1(LITERAL("a"));
+		StringType str2(eastl::move(str1));
 
-			VERIFY(str1 != LITERAL("a"));
-			VERIFY(str2 == LITERAL("a"));
+		VERIFY(str1 != LITERAL("a"));
+		VERIFY(str2 == LITERAL("a"));
 
-			VERIFY(str1.empty());
-			VERIFY(!str2.empty());
+		VERIFY(str1.empty());
+		VERIFY(!str2.empty());
 
-			VERIFY(str1.length() == 0);
-			VERIFY(str2.length() == 1);
+		VERIFY(str1.length() == 0);
+		VERIFY(str2.length() == 1);
 
-			VERIFY(str1.size() == 0);
-			VERIFY(str2.size() == 1);
+		VERIFY(str1.size() == 0);
+		VERIFY(str2.size() == 1);
 
-			VERIFY(str1.validate());
-			VERIFY(str2.validate());
-		}
-	#endif
+		VERIFY(str1.validate());
+		VERIFY(str2.validate());
 	}
 
 	// basic_string(const view_type& sv, const allocator_type& allocator);
@@ -510,46 +506,42 @@ int TEST_STRING_NAME()
 
 	// this_type& operator=(this_type&& x);
 	{
-	#if EASTL_MOVE_SEMANTICS_ENABLED
-		{
-			StringType str1(LITERAL("abcdefghijklmnopqrstuvwxyz"));
-			StringType str2 = eastl::move(str1);
+		StringType str1(LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		StringType str2 = eastl::move(str1);
 
-			VERIFY(str1 != LITERAL("abcdefghijklmnopqrstuvwxyz"));
-			VERIFY(str2 == LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		VERIFY(str1 != LITERAL("abcdefghijklmnopqrstuvwxyz"));
+		VERIFY(str2 == LITERAL("abcdefghijklmnopqrstuvwxyz"));
 
-			VERIFY(str1.empty());
-			VERIFY(!str2.empty());
+		VERIFY(str1.empty());
+		VERIFY(!str2.empty());
 
-			VERIFY(str1.length() == 0);
-			VERIFY(str2.length() == 26);
+		VERIFY(str1.length() == 0);
+		VERIFY(str2.length() == 26);
 
-			VERIFY(str1.size() == 0);
-			VERIFY(str2.size() == 26);
+		VERIFY(str1.size() == 0);
+		VERIFY(str2.size() == 26);
 
-			VERIFY(str1.validate());
-			VERIFY(str2.validate());
-		}
-		{
-			StringType str1(LITERAL("a"));
-			StringType str2 = eastl::move(str1);
+		VERIFY(str1.validate());
+		VERIFY(str2.validate());
+	}
+	{
+		StringType str1(LITERAL("a"));
+		StringType str2 = eastl::move(str1);
 
-			VERIFY(str1 != LITERAL("a"));
-			VERIFY(str2 == LITERAL("a"));
+		VERIFY(str1 != LITERAL("a"));
+		VERIFY(str2 == LITERAL("a"));
 
-			VERIFY(str1.empty());
-			VERIFY(!str2.empty());
+		VERIFY(str1.empty());
+		VERIFY(!str2.empty());
 
-			VERIFY(str1.length() == 0);
-			VERIFY(str2.length() == 1);
+		VERIFY(str1.length() == 0);
+		VERIFY(str2.length() == 1);
 
-			VERIFY(str1.size() == 0);
-			VERIFY(str2.size() == 1);
+		VERIFY(str1.size() == 0);
+		VERIFY(str2.size() == 1);
 
-			VERIFY(str1.validate());
-			VERIFY(str2.validate());
-		}
-	#endif
+		VERIFY(str1.validate());
+		VERIFY(str2.validate());
 	}
 
 	//     this_type& operator=(value_type* p);
@@ -737,7 +729,6 @@ int TEST_STRING_NAME()
 
 	// this_type& assign(this_type&& x);
 	{
-	#if EASTL_MOVE_SEMANTICS_ENABLED
 		StringType str1(LITERAL("abcdefghijklmnopqrstuvwxyz"));
 		StringType str2;
 
@@ -756,18 +747,15 @@ int TEST_STRING_NAME()
 
 		VERIFY(str1.validate());
 		VERIFY(str2.validate());
-	#endif
 	}
 
 	// this_type& assign(std::initializer_list<value_type>);
 	{
-	#if !defined(EA_COMPILER_NO_INITIALIZER_LISTS)
 		StringType str(LITERAL("abcdefghijklmnopqrstuvwxyz"));
 		str.assign({'1','2','3'});
 
 		VERIFY(str == LITERAL("123"));
 		VERIFY(str.validate());
-	#endif
 	}
 
 	// template <typename OtherCharType>

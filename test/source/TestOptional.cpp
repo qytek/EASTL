@@ -37,14 +37,14 @@ bool destructor_test::destructor_ran = false;
 struct move_test
 {
     move_test() = default;
-	move_test(move_test&& other)      { was_moved = true; }
+	move_test(move_test&&)            { was_moved = true; }
 	move_test& operator=(move_test&&) { was_moved = true; return *this;}
 
 	// issue a compiler error is container tries to copy
-    move_test(move_test const &other)  = delete;
-	move_test& operator=(const move_test&) = delete;  
+	move_test(move_test const&) = delete;
+	move_test& operator=(const move_test&) = delete;
 
-    static bool was_moved;
+	static bool was_moved;
 };
 
 bool move_test::was_moved = false;
@@ -367,6 +367,35 @@ int TestOptional()
 			o.emplace(42);
 			VERIFY(*o == 42);
 		}
+
+		struct nonCopyableNonMovable
+		{
+			nonCopyableNonMovable(int v) : val(v) {}
+
+			nonCopyableNonMovable(const nonCopyableNonMovable&) = delete;
+			nonCopyableNonMovable(nonCopyableNonMovable&&) = delete;
+			nonCopyableNonMovable& operator=(const nonCopyableNonMovable&) = delete;
+
+			int val = 0;
+		};
+
+		{
+			optional<nonCopyableNonMovable> o;
+			o.emplace(42);
+			VERIFY(o->val == 42);
+		}
+
+		{
+			// Verify emplace will destruct object if it has been engaged.
+			destructor_test::reset();
+			optional<destructor_test> o;
+			o.emplace();
+			VERIFY(!destructor_test::destructor_ran);
+
+			destructor_test::reset();
+			o.emplace();
+			VERIFY(destructor_test::destructor_ran);
+		}
 	}
 	#endif
 
@@ -539,15 +568,12 @@ int TestOptional()
 		}
 		{
 			// user regression
+			EA_DISABLE_VC_WARNING(4625 4626) // copy/assignment operator constructor was implicitly defined as deleted
 			struct local
 			{
 				eastl::unique_ptr<int> ptr;
-
-				local(const local&) = delete;
-				local(local&&) = default;
-				local& operator=(const local&) = delete;
-				local& operator=(local&&) = default;
 			};
+			EA_RESTORE_VC_WARNING()
 
 			eastl::optional<local> o1 = local{eastl::make_unique<int>(42)};
 			eastl::optional<local> o2;

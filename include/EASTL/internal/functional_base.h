@@ -19,8 +19,8 @@ namespace eastl
 {
 	// foward declaration for swap
 	template <typename T>
-	inline void swap(T& a, T& b) EA_NOEXCEPT_IF(eastl::is_nothrow_move_constructible<T>::value &&
-	eastl::is_nothrow_move_assignable<T>::value);
+	inline void swap(T& a, T& b)
+	    EA_NOEXCEPT_IF(eastl::is_nothrow_move_constructible<T>::value&& eastl::is_nothrow_move_assignable<T>::value);
 
 
 	/// invoke
@@ -40,10 +40,8 @@ namespace eastl
 	///
 	template <typename R, typename C, typename T, typename... Args>
 	auto invoke_impl(R C::*func, T&& obj, Args&&... args) ->
-	typename enable_if<
-		is_base_of<C, decay_t<decltype(obj)>>::value,
-		decltype((eastl::forward<T>(obj).*func)(eastl::forward<Args>(args)...))
-	>::type
+	    typename enable_if<is_base_of<C, decay_t<decltype(obj)>>::value,
+	                       decltype((eastl::forward<T>(obj).*func)(eastl::forward<Args>(args)...))>::type
 	{
 		return (eastl::forward<T>(obj).*func)(eastl::forward<Args>(args)...);
 	}
@@ -195,9 +193,7 @@ namespace eastl
 		typedef T type;
 
 		reference_wrapper(T&) EA_NOEXCEPT;
-		#if !defined(EA_COMPILER_NO_DELETED_FUNCTIONS)
-			reference_wrapper(T&&) = delete;
-		#endif
+		reference_wrapper(T&&) = delete;
 		reference_wrapper(const reference_wrapper<T>& x) EA_NOEXCEPT;
 
 		reference_wrapper& operator=(const reference_wrapper<T>& x) EA_NOEXCEPT;
@@ -205,10 +201,8 @@ namespace eastl
 		operator T& () const EA_NOEXCEPT;
 		T& get() const EA_NOEXCEPT;
 
-		#if EASTL_VARIADIC_TEMPLATES_ENABLED
-			template <typename... ArgTypes>
-			typename eastl::result_of<T&(ArgTypes&&...)>::type operator() (ArgTypes&&...) const;
-		#endif
+		template <typename... ArgTypes>
+		typename eastl::result_of<T&(ArgTypes&&...)>::type operator() (ArgTypes&&...) const;
 
 	private:
 		T* val;
@@ -252,22 +246,34 @@ namespace eastl
 
 	// reference_wrapper-specific utilties
 	template <typename T>
-	reference_wrapper<T> ref(T& t) EA_NOEXCEPT;
+	reference_wrapper<T> ref(T& t) EA_NOEXCEPT
+	{
+		return eastl::reference_wrapper<T>(t); 
+	}
 
 	template <typename T>
 	void ref(const T&&) = delete;
 
 	template <typename T>
-	reference_wrapper<T> ref(reference_wrapper<T>t) EA_NOEXCEPT;
+	reference_wrapper<T> ref(reference_wrapper<T>t) EA_NOEXCEPT
+	{
+		return eastl::ref(t.get());
+	}
 
 	template <typename T>
-	reference_wrapper<const T> cref(const T& t) EA_NOEXCEPT;
+	reference_wrapper<const T> cref(const T& t) EA_NOEXCEPT
+	{
+		return eastl::reference_wrapper<const T>(t);
+	}
 
 	template <typename T>
 	void cref(const T&&) = delete;
 
 	template <typename T>
-	reference_wrapper<const T> cref(reference_wrapper<T> t) EA_NOEXCEPT;
+	reference_wrapper<const T> cref(reference_wrapper<T> t) EA_NOEXCEPT
+	{
+		return eastl::cref(t.get());
+	}
 
 
 	// reference_wrapper-specific type traits

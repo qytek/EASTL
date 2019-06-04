@@ -125,7 +125,7 @@
 	#endif
 
 
-#elif defined(EA_PLATFORM_XBOXONE) || defined(_DURANGO) || defined(EA_PLATFORM_CAPILANO)
+#elif defined(EA_PLATFORM_XBOXONE) || defined(_DURANGO) || defined(EA_PLATFORM_CAPILANO) || (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_GAMES || WINAPI_FAMILY == WINAPI_FAMILY_TV_TITLE))
 	// XBox One
 	// Durango was Microsoft's code-name for the platform, which is now obsolete.
 	// Microsoft uses _DURANGO instead of some variation of _XBOX, though it's not natively defined by the compiler.
@@ -166,6 +166,7 @@
 	#define EA_WINAPI_FAMILY_PHONE_APP   1002
 	#define EA_WINAPI_FAMILY_TV_APP      1003
 	#define EA_WINAPI_FAMILY_TV_TITLE    1004
+	#define EA_WINAPI_FAMILY_GAMES       1006
 	
 	#if defined(WINAPI_FAMILY) 
 		#include <winapifamily.h>
@@ -173,6 +174,8 @@
 			#define EA_WINAPI_FAMILY EA_WINAPI_FAMILY_TV_TITLE
 		#elif WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
 			#define EA_WINAPI_FAMILY EA_WINAPI_FAMILY_DESKTOP_APP
+		#elif WINAPI_FAMILY == WINAPI_FAMILY_GAMES
+			#define EA_WINAPI_FAMILY EA_WINAPI_FAMILY_GAMES
 		#else
 			#error Unsupported WINAPI_FAMILY
 		#endif
@@ -191,6 +194,7 @@
 		#define EA_WIANPI_PARTITION_PHONE    0
 		#define EA_WINAPI_PARTITION_TV_APP   0
 		#define EA_WINAPI_PARTITION_TV_TITLE 0
+		#define EA_WINAPI_PARTITION_GAMES    0
 	#elif EA_WINAPI_FAMILY == EA_WINAPI_FAMILY_TV_TITLE
 		#define EA_WINAPI_PARTITION_CORE     1
 		#define EA_WINAPI_PARTITION_DESKTOP  0
@@ -199,6 +203,16 @@
 		#define EA_WIANPI_PARTITION_PHONE    0
 		#define EA_WINAPI_PARTITION_TV_APP   0
 		#define EA_WINAPI_PARTITION_TV_TITLE 1
+		#define EA_WINAPI_PARTITION_GAMES    0
+	#elif EA_WINAPI_FAMILY == EA_WINAPI_FAMILY_GAMES
+		#define EA_WINAPI_PARTITION_CORE     1
+		#define EA_WINAPI_PARTITION_DESKTOP  0
+		#define EA_WINAPI_PARTITION_APP      0
+		#define EA_WINAPI_PARTITION_PC_APP   0
+		#define EA_WIANPI_PARTITION_PHONE    0
+		#define EA_WINAPI_PARTITION_TV_APP   0
+		#define EA_WINAPI_PARTITION_TV_TITLE 0
+		#define EA_WINAPI_PARTITION_GAMES    1
 	#else
 		#error Unsupported WINAPI_FAMILY
 	#endif
@@ -340,7 +354,7 @@
 			#define EA_PLATFORM_DESCRIPTION "OSX on ARM64"
 		#elif defined(__POWERPC64__) || defined(__powerpc64__)
 			#define EA_PROCESSOR_POWERPC 1
-			#define CS_UNDEFINED_STRING 1
+			#define EA_PROCESSOR_POWERPC_64 1
 			#define EA_SYSTEM_BIG_ENDIAN 1
 			#define EA_PLATFORM_DESCRIPTION "OSX on PowerPC 64"
 		#elif defined(__POWERPC__) || defined(__powerpc__)
@@ -368,6 +382,8 @@
 // _M_IX86 is defined by the Borland compiler.
 // __sparc__ is defined by the GCC compiler.
 // __powerpc__ is defined by the GCC compiler.
+// __ARM_EABI__ is defined by GCC on an ARM v6l (Raspberry Pi 1)
+// __ARM_ARCH_7A__ is defined by GCC on an ARM v7l (Raspberry Pi 2)
 #elif defined(EA_PLATFORM_LINUX) || (defined(__linux) || defined(__linux__))
 	#undef  EA_PLATFORM_LINUX
 	#define EA_PLATFORM_LINUX 1
@@ -378,13 +394,20 @@
 		#define EA_PROCESSOR_X86 1
 		#define EA_SYSTEM_LITTLE_ENDIAN 1
 		#define EA_PLATFORM_DESCRIPTION "Linux on x86"
+	#elif defined(__ARM_ARCH_7A__) || defined(__ARM_EABI__)
+		#define EA_ABI_ARM_LINUX 1
+		#define EA_PROCESSOR_ARM32 1
+		#define EA_PLATFORM_DESCRIPTION "Linux on ARM 6/7 32-bits"
+	#elif defined(__aarch64__) || defined(__AARCH64)
+		#define EA_PROCESSOR_ARM64 1
+		#define EA_PLATFORM_DESCRIPTION "Linux on ARM64"
 	#elif defined(__x86_64__)
 		#define EA_PROCESSOR_X86_64 1
 		#define EA_SYSTEM_LITTLE_ENDIAN 1
 		#define EA_PLATFORM_DESCRIPTION "Linux on x64"
 	#elif defined(__powerpc64__)
 		#define EA_PROCESSOR_POWERPC 1
-		#define CS_UNDEFINED_STRING 1
+		#define EA_PROCESSOR_POWERPC_64 1
 		#define EA_SYSTEM_BIG_ENDIAN 1
 		#define EA_PLATFORM_DESCRIPTION "Linux on PowerPC 64"
 	#elif defined(__powerpc__)
@@ -427,7 +450,7 @@
 		#define EA_PLATFORM_DESCRIPTION "BSD on x64"
 	#elif defined(__powerpc64__)
 		#define EA_PROCESSOR_POWERPC 1
-		#define CS_UNDEFINED_STRING 1
+		#define EA_PROCESSOR_POWERPC_64 1
 		#define EA_SYSTEM_BIG_ENDIAN 1
 		#define EA_PLATFORM_DESCRIPTION "BSD on PowerPC 64"
 	#elif defined(__powerpc__)
@@ -547,10 +570,8 @@
 	#define EA_PLATFORM_MICROSOFT 1
 
 	// WINAPI_FAMILY defines to support Windows 8 Metro Apps - mirroring winapifamily.h in the Windows 8 SDK
-	#define EA_WINAPI_PARTITION_DESKTOP   0x00000001
-	#define EA_WINAPI_PARTITION_APP       0x00000002
-	#define EA_WINAPI_FAMILY_APP          EA_WINAPI_PARTITION_APP
-	#define EA_WINAPI_FAMILY_DESKTOP_APP  (EA_WINAPI_PARTITION_DESKTOP | EA_WINAPI_PARTITION_APP)
+	#define EA_WINAPI_FAMILY_APP         1000
+	#define EA_WINAPI_FAMILY_DESKTOP_APP 1001
 
 	#if defined(WINAPI_FAMILY)
 		#if defined(_MSC_VER)
@@ -571,7 +592,10 @@
 		#define EA_WINAPI_FAMILY EA_WINAPI_FAMILY_DESKTOP_APP
 	#endif
 
-	#define EA_WINAPI_FAMILY_PARTITION(Partition)   ((EA_WINAPI_FAMILY & Partition) == Partition)
+	#define EA_WINAPI_PARTITION_DESKTOP   1
+	#define EA_WINAPI_PARTITION_APP       1
+
+	#define EA_WINAPI_FAMILY_PARTITION(Partition)   (Partition)
 
 	// EA_PLATFORM_WINRT
 	// This is a subset of Windows which is used for tablets and the "Metro" (restricted) Windows user interface.
@@ -636,11 +660,7 @@
 // have 64 bit registers but 32 bit pointers.
 //
 #ifndef EA_PLATFORM_WORD_SIZE
-   #if (EA_PLATFORM_PTR_SIZE == 8)
-	  #define EA_PLATFORM_WORD_SIZE 8
-   #else
-	  #define EA_PLATFORM_WORD_SIZE EA_PLATFORM_PTR_SIZE
-   #endif
+	#define EA_PLATFORM_WORD_SIZE EA_PLATFORM_PTR_SIZE
 #endif
 
 // EA_PLATFORM_MIN_MALLOC_ALIGNMENT

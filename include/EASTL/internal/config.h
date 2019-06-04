@@ -89,8 +89,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef EASTL_VERSION
-	#define EASTL_VERSION   "3.12.01"
-	#define EASTL_VERSION_N  31201
+	#define EASTL_VERSION   "3.13.06"
+	#define EASTL_VERSION_N  31305
 #endif
 
 
@@ -146,10 +146,15 @@
 
 	#if defined(EA_COMPILER_MSVC_2015)
 		#define EA_CPP14_CONSTEXPR  // not supported
+		#define EA_NO_CPP14_CONSTEXPR 
+	#elif defined(__GNUC__) && (EA_COMPILER_VERSION < 9000)   // Before GCC 9.0
+		#define EA_CPP14_CONSTEXPR  // not supported
+		#define EA_NO_CPP14_CONSTEXPR 
 	#elif defined(EA_COMPILER_CPP14_ENABLED)
 		#define EA_CPP14_CONSTEXPR constexpr
 	#else
 		#define EA_CPP14_CONSTEXPR  // not supported
+		#define EA_NO_CPP14_CONSTEXPR 
 	#endif
 #endif
 
@@ -750,14 +755,6 @@ namespace eastl
 // in practice may never occur for you.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-#ifndef EASTL_STRING_OPT_CHAR_INIT
-	// Defined as 0 or 1. Default is 1.
-	// Defines if newly created characters are initialized to 0 or left
-	// as random values.
-	// The C++ string standard is to initialize chars to 0.
-	#define EASTL_STRING_OPT_CHAR_INIT 1
-#endif
 
 #ifndef EASTL_STRING_OPT_EXPLICIT_CTORS
 	// Defined as 0 or 1. Default is 0.
@@ -1641,7 +1638,7 @@ typedef EASTL_SSIZE_T eastl_ssize_t; // Signed version of eastl_size_t. Concept 
 // MallocAligned call and it's typically better if it can use the Malloc call.
 // But this requires knowing what the minimum possible alignment is.
 #if !defined(EASTL_ALLOCATOR_MIN_ALIGNMENT)
-	#define EASTL_ALLOCATOR_MIN_ALIGNMENT (EA_PLATFORM_PTR_SIZE * 2)
+	#define EASTL_ALLOCATOR_MIN_ALIGNMENT EA_PLATFORM_MIN_MALLOC_ALIGNMENT
 #endif
 
 

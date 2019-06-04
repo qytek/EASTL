@@ -34,12 +34,10 @@ EA_RESTORE_ALL_VC_WARNINGS()
 		return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
 	}
 
-	#if (EASTDC_VERSION_N >= 10600)
-		int Vsnprintf32(char32_t* pDestination, size_t n, const char32_t* pFormat, va_list arguments)
-		{
-			return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
-		}
-	#endif
+	int Vsnprintf32(char32_t* pDestination, size_t n, const char32_t* pFormat, va_list arguments)
+	{
+		return EA::StdC::Vsnprintf(pDestination, n, pFormat, arguments);
+	}
 
 	#if defined(EA_WCHAR_UNIQUE) && EA_WCHAR_UNIQUE
 		int VsnprintfW(wchar_t* pDestination, size_t n, const wchar_t* pFormat, va_list arguments)
@@ -112,6 +110,7 @@ int EAMain(int argc, char* argv[])
 	testSuite.AddTest("Iterator",				TestIterator);
 	testSuite.AddTest("List",					TestList);
 	testSuite.AddTest("ListMap",				TestListMap);
+	testSuite.AddTest("LRUCache",				TestLruCache);
 	testSuite.AddTest("Map",					TestMap);
 	testSuite.AddTest("Memory",					TestMemory);
 	testSuite.AddTest("Meta",				    TestMeta);
